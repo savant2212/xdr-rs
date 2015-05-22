@@ -2,3 +2,6 @@
 name = "xdr"
 version = "0.1.0"
 authors = ["Nikita Nazarenko <nnazarenko@radiofid.ru>"]
+
+[dependencies]
+byteorder="*"
