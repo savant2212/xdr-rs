@@ -1,7 +1,7 @@
 #![crate_id="xdr#1.0.1"]
 #![crate_type="lib"]
 extern crate byteorder;
-mod xdr;
+pub mod xdr;
 
 #[test]
 fn u16_writer_test() {
@@ -15,5 +15,5 @@ fn u16_writer_test() {
 
 	wtr.write_u16::<BigEndian>(517).unwrap();
 	xdr::XdrPrimitive::write_to_xdr(&mut x,517u16);
-	assert_eq!(x.get_data(),wtr);
+	assert_eq!(x.get_buffer(),wtr);
 }
