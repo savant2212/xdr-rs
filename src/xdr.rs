@@ -71,6 +71,10 @@ impl XdrWriter {
 	pub fn get_buffer(self) -> Vec<u8> {
 		self.writer.into_inner()
 	}
+
+	pub fn pack<T:XdrPrimitive>(&mut self, x:T) {
+		XdrPrimitive::write_to_xdr(self, x)
+	}
 		
 }	
 pub trait XdrPrimitive {
