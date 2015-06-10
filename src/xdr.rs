@@ -76,7 +76,18 @@ impl XdrWriter {
 		XdrPrimitive::write_to_xdr(self, x)
 	}
 		
-}	
+}
+
+impl XdrReader {
+	pub fn new(x: Vec<u8>) -> XdrReader {
+		XdrReader{ reader : io::Cursor::new(x) }
+	}
+
+	pub fn unpack<T: XdrPrimitive>(&mut self) -> Result<T,Error> {
+		T::read_from_xdr(self)
+	}
+}
+
 pub trait XdrPrimitive {
 	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>;
 	fn write_to_xdr(x: &mut XdrWriter, v: Self);
