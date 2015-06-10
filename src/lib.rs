@@ -43,3 +43,17 @@ fn r_w_primitive_test() {
 	assert_eq!(100.500f32,rdr.unpack::<f32>().unwrap());
 	assert_eq!(-100.500e10f64,rdr.unpack::<f64>().unwrap());
 }
+
+#[test]
+fn vec_test() {
+	let mut wr = xdr::XdrWriter::new();
+	let vec = vec![0u32,1,2,3,4,5];
+
+	wr.pack(vec);
+
+	let mut rdr = xdr::XdrReader::new(wr.get_buffer());
+
+	let res = rdr.unpack::<Vec<u32>>().unwrap();
+
+	assert_eq!(vec![0u32,1,2,3,4,5], res)
+}
