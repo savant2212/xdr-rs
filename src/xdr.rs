@@ -205,3 +205,20 @@ impl XdrPrimitive for f64 {
 	}
 }
 
+impl XdrPrimitive for bool {
+	fn read_from_xdr(x: &mut XdrReader) -> Result<bool, Error>{
+		match x.reader.read_u32::<byteorder::BigEndian>() {
+			Ok(0) => Ok(false),
+			Ok(1) => Ok(true),
+			Ok(_) => Err(Error::InvalidValue),
+			Err(v) => Err(Error::Io(v))
+		}
+	}
+
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
+		match v {
+			true => x.writer.write_u32::<byteorder::BigEndian>(1).unwrap(),
+			false => x.writer.write_u32::<byteorder::BigEndian>(0).unwrap(),
+		}
+	}
+}
