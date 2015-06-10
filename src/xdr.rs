@@ -5,6 +5,55 @@ use std::vec::Vec;
 use byteorder;
 use byteorder::{BigEndian,ReadBytesExt,WriteBytesExt};
 
+#[derive(Debug)]
+pub enum Error {
+	Io(byteorder::Error),
+	InvalidValue,
+	InvalidType
+}
+
+impl From<byteorder::Error> for Error {
+	fn from(err: byteorder::Error) -> Error { Error::Io(err) }
+}
+
+impl From<Error> for byteorder::Error {
+	fn from(err: Error) -> byteorder::Error {
+		match err {
+			Error::Io(err) => err,
+			Error::InvalidValue => byteorder::Error::Io(io::Error::new(io::ErrorKind::Other, "Invalid value")),
+			Error::InvalidType => byteorder::Error::Io(io::Error::new(io::ErrorKind::Other, "Invalid type")),
+		}
+	}
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+	        match *self {
+				Error::InvalidValue => write!(f, "Invalid value."),
+				Error::InvalidType => write!(f, "Invalid type."),
+				Error::Io(ref err) => err.fmt(f),
+			}
+	}
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::InvalidValue => "Invalid value.",
+            Error::InvalidType => "Invalid type.",
+            Error::Io(ref err) => error::Error::description(err),
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        match *self {
+            Error::InvalidValue => None,
+            Error::InvalidType => None,
+            Error::Io(ref err) => err.cause(),
+        }
+    }
+}
+
 pub struct XdrReader {
 	reader : io::Cursor<Vec<u8>>
 }
