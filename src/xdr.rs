@@ -1,21 +1,22 @@
-use std::io::{BufReader,BufWriter,Cursor};
-use std::str;
+use std::io;
+use std::fmt;
+use std::error;
 use std::vec::Vec;
-use byteorder::{BigEndian,ReadBytesExt,WriteBytesExt,Error};
-static PAD_LEN:u32 = 4;
+use byteorder;
+use byteorder::{BigEndian,ReadBytesExt,WriteBytesExt};
 
 pub struct XdrReader {
-	reader : Cursor<Vec<u8>>
+	reader : io::Cursor<Vec<u8>>
 }
 
 pub struct XdrWriter {
-	writer : Cursor<Vec<u8>>
+	writer : io::Cursor<Vec<u8>>
 }
 
 impl XdrWriter {
 	pub fn new() -> XdrWriter {
 		let v : Vec<u8>= Vec::new();
-		XdrWriter{ writer: Cursor::new(v)}
+		XdrWriter{ writer: io::Cursor::new(v)}
 	}
 
 	pub fn get_buffer(self) -> Vec<u8> {
