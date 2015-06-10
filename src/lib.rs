@@ -1,3 +1,4 @@
+#![feature(convert)]
 #![crate_type="lib"]
 extern crate byteorder;
 pub mod xdr;
@@ -14,7 +15,7 @@ fn u16_writer_test() {
 #[test]
 fn u16_reader_test() {
 	let wtr = vec![0,0,2,5];
-	let mut x = xdr::XdrReader::new(wtr);
+	let mut x = xdr::XdrReader::new(&wtr);
 
 	let v = x.unpack::<u16>().unwrap();
 	assert_eq!(v,517u16);
@@ -32,7 +33,8 @@ fn r_w_primitive_test() {
 	wr.pack(100.500f32);
 	wr.pack(-100.500e10f64);
 
-	let mut rdr = xdr::XdrReader::new(wr.get_buffer());
+	let buf = &wr.get_buffer();
+	let mut rdr = xdr::XdrReader::new(buf);
 
 	assert_eq!(0xCCu8,rdr.unpack::<u8>().unwrap());
 	assert_eq!(0xAAAAu16,rdr.unpack::<u16>().unwrap());
@@ -50,8 +52,8 @@ fn vec_test() {
 	let vec = vec![0u32,1,2,3,4,5];
 
 	wr.pack(vec);
-
-	let mut rdr = xdr::XdrReader::new(wr.get_buffer());
+	let buf = &wr.get_buffer();
+	let mut rdr = xdr::XdrReader::new(buf);
 
 	let res = rdr.unpack::<Vec<u32>>().unwrap();
 

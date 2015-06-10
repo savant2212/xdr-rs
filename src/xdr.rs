@@ -1,3 +1,4 @@
+#![feature(convert)]
 use std::io;
 use std::fmt;
 use std::error;
@@ -54,8 +55,8 @@ impl error::Error for Error {
     }
 }
 
-pub struct XdrReader {
-	reader : io::Cursor<Vec<u8>>
+pub struct XdrReader<'a> {
+	reader : io::Cursor<&'a [u8]>
 }
 
 pub struct XdrWriter {
@@ -77,10 +78,13 @@ impl XdrWriter {
 	}
 		
 }
+impl<'a> XdrReader<'a> {
+	pub fn new(x:&'a Vec<u8>) -> XdrReader<'a> {
+		XdrReader{ reader : io::Cursor::new(x.as_slice()) }
+	}
 
-impl XdrReader {
-	pub fn new(x: Vec<u8>) -> XdrReader {
-		XdrReader{ reader : io::Cursor::new(x) }
+	pub fn from_array(x: &'a [u8]) -> XdrReader<'a> {
+		XdrReader{ reader: io::Cursor::new(x) }
 	}
 
 	pub fn unpack<T: XdrPrimitive>(&mut self) -> Result<T,Error> {
