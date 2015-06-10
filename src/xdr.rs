@@ -93,6 +93,24 @@ pub trait XdrPrimitive {
 	fn write_to_xdr(x: &mut XdrWriter, v: Self);
 }
 
+impl<T:XdrPrimitive> XdrPrimitive for Vec<T> {
+	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>{
+		let count = x.unpack::<u32>().unwrap() as usize;
+		let mut result : Vec<T> = Vec::with_capacity(count);
+
+		for _ in 0..count {
+			result.push(x.unpack::<T>().unwrap());
+		};
+		Ok(result)
+	}
+	fn write_to_xdr(x: &mut XdrWriter, v: Self) {
+		x.pack( v.len() as u32 );
+		for t in v {
+			x.pack(t);
+		};
+	}
+}
+
 impl XdrPrimitive for u32 {
 	fn read_from_xdr(x: &mut XdrReader) -> Result<u32, Error>{
 		match x.reader.read_u32::<byteorder::BigEndian>() {
