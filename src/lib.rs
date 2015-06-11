@@ -47,7 +47,7 @@ fn r_w_primitive_test() {
 }
 
 #[test]
-fn vec_test() {
+fn variable_length_array_test() {
 	let mut wr = xdr::XdrWriter::new();
 	let vec = vec![0u32,1,2,3,4,5];
 
