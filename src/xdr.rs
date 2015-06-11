@@ -85,7 +85,7 @@ impl XdrWriter {
 }
 impl<'a> XdrReader<'a> {
 	pub fn new(x:&'a Vec<u8>) -> XdrReader<'a> {
-		XdrReader{ reader : io::Cursor::new(x.as_slice()) }
+		XdrReader{ reader : io::Cursor::new(&x) }
 	}
 
 	pub fn from_array(x: &'a [u8]) -> XdrReader<'a> {

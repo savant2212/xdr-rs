@@ -1,4 +1,4 @@
-#![feature(convert)]
+//#![feature(convert)]
 #![crate_type="lib"]
 extern crate byteorder;
 pub mod xdr;
