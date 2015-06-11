@@ -47,7 +47,7 @@ fn r_w_primitive_test() {
 }
 
 #[test]
-fn vec_test() {
+fn variable_length_array_test() {
 	let mut wr = xdr::XdrWriter::new();
 	let vec = vec![0u32,1,2,3,4,5];
 
@@ -56,6 +56,20 @@ fn vec_test() {
 	let mut rdr = xdr::XdrReader::new(buf);
 
 	let res = rdr.unpack::<Vec<u32>>().unwrap();
+
+	assert_eq!(vec![0u32,1,2,3,4,5], res)
+}
+
+#[test]
+fn fixed_length_array_test() {
+	let mut wr = xdr::XdrWriter::new();
+	let vec = vec![0u32,1,2,3,4,5];
+
+	wr.pack_array(vec);
+	let buf = &wr.get_buffer();
+	let mut rdr = xdr::XdrReader::new(buf);
+
+	let res = rdr.unpack_array::<u32>(6).unwrap();
 
 	assert_eq!(vec![0u32,1,2,3,4,5], res)
 }

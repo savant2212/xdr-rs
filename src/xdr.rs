@@ -75,6 +75,12 @@ impl XdrWriter {
 	pub fn pack<T:XdrPrimitive>(&mut self, x:T) {
 		XdrPrimitive::write_to_xdr(self, x)
 	}
+
+	pub fn pack_array<T:XdrPrimitive>(&mut self, x:Vec<T>) {
+		for t in x {
+			XdrPrimitive::write_to_xdr(self,t);
+		};
+	}
 		
 }
 impl<'a> XdrReader<'a> {
@@ -88,6 +94,16 @@ impl<'a> XdrReader<'a> {
 
 	pub fn unpack<T: XdrPrimitive>(&mut self) -> Result<T,Error> {
 		T::read_from_xdr(self)
+	}
+
+	pub fn unpack_array<T:XdrPrimitive>(&mut self, n : usize) -> Result<Vec<T>,Error> {
+		let mut result : Vec<T> = Vec::with_capacity(n);
+
+		for _ in 0..n {
+			let t =  T::read_from_xdr(self).unwrap();
+			result.push(t)
+		};
+		Ok(result)
 	}
 }
 
