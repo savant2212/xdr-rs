@@ -70,7 +70,7 @@ impl XdrWriter {
 		XdrWriter{ writer: io::Cursor::new(v)}
 	}
 
-	pub fn get_buffer(self) -> Vec<u8> {
+	pub fn into_buffer(self) -> Vec<u8> {
 		self.writer.into_inner()
 	}
 

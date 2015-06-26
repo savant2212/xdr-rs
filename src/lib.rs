@@ -9,7 +9,7 @@ fn u16_writer_test() {
 	let wtr = vec![0,0,2,5];
 
 	x.pack(517u16);
-	assert_eq!(x.get_buffer(),wtr);
+	assert_eq!(x.into_buffer(),wtr);
 }
 
 #[test]
@@ -33,7 +33,7 @@ fn r_w_primitive_test() {
 	wr.pack(100.500f32);
 	wr.pack(-100.500e10f64);
 
-	let buf = &wr.get_buffer();
+	let buf = &wr.into_buffer();
 	let mut rdr = xdr::XdrReader::new(buf);
 
 	assert_eq!(0xCCu8,rdr.unpack::<u8>().unwrap());
@@ -52,7 +52,7 @@ fn variable_length_array_test() {
 	let vec = vec![0u32,1,2,3,4,5];
 
 	wr.pack(vec);
-	let buf = &wr.get_buffer();
+	let buf = &wr.into_buffer();
 	let mut rdr = xdr::XdrReader::new(buf);
 
 	let res = rdr.unpack::<Vec<u32>>().unwrap();
@@ -66,7 +66,7 @@ fn fixed_length_array_test() {
 	let vec = vec![0u32,1,2,3,4,5];
 
 	wr.pack_array(vec);
-	let buf = &wr.get_buffer();
+	let buf = &wr.into_buffer();
 	let mut rdr = xdr::XdrReader::new(buf);
 
 	let res = rdr.unpack_array::<u32>(6).unwrap();
@@ -80,7 +80,7 @@ fn ascii_string_test() {
 	let str = "abcdefABCDEFGH".to_string();
 
 	wr.pack(str);
-	let buf = &wr.get_buffer();
+	let buf = &wr.into_buffer();
 	let mut rdr = xdr::XdrReader::new(buf);
 
 	let res = rdr.unpack::<String>().unwrap();
@@ -94,7 +94,7 @@ fn utf_8_string_test() {
 	let str = "abcdefABCDEFGHАБВГДЕЁ".to_string();
 
 	wr.pack(str);
-	let buf = &wr.get_buffer();
+	let buf = &wr.into_buffer();
 	let mut rdr = xdr::XdrReader::new(buf);
 
 	let res = rdr.unpack::<String>().unwrap();
