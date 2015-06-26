@@ -77,7 +77,7 @@ fn fixed_length_array_test() {
 #[test]
 fn ascii_string_test() {
 	let mut wr = xdr::XdrWriter::new();
-	let str = "abcdefABCDEFGH".to_string();
+	let str = "abcdefABCDEFGH".to_owned();
 
 	wr.pack(str);
 	let buf = &wr.into_buffer();
@@ -91,7 +91,7 @@ fn ascii_string_test() {
 #[test]
 fn utf_8_string_test() {
 	let mut wr = xdr::XdrWriter::new();
-	let str = "abcdefABCDEFGHАБВГДЕЁ".to_string();
+	let str = "abcdefABCDEFGHАБВГДЕЁ".to_owned();
 
 	wr.pack(str);
 	let buf = &wr.into_buffer();
