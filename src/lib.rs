@@ -73,3 +73,31 @@ fn fixed_length_array_test() {
 
 	assert_eq!(vec![0u32,1,2,3,4,5], res)
 }
+
+#[test]
+fn ascii_string_test() {
+	let mut wr = xdr::XdrWriter::new();
+	let str = "abcdefABCDEFGH".to_string();
+
+	wr.pack(str);
+	let buf = &wr.get_buffer();
+	let mut rdr = xdr::XdrReader::new(buf);
+
+	let res = rdr.unpack::<String>().unwrap();
+
+	assert_eq!("abcdefABCDEFGH", res)
+}
+
+#[test]
+fn utf_8_string_test() {
+	let mut wr = xdr::XdrWriter::new();
+	let str = "abcdefABCDEFGHАБВГДЕЁ".to_string();
+
+	wr.pack(str);
+	let buf = &wr.get_buffer();
+	let mut rdr = xdr::XdrReader::new(buf);
+
+	let res = rdr.unpack::<String>().unwrap();
+
+	assert_eq!("abcdefABCDEFGHАБВГДЕЁ", res)
+}
