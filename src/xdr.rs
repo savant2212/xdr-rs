@@ -5,7 +5,7 @@ use std::vec::Vec;
 use byteorder;
 use byteorder::{BigEndian,ReadBytesExt,WriteBytesExt};
 
-static PADDING : usize = 4;
+const PADDING : usize = 4;
 
 #[derive(Debug)]
 pub enum Error {
