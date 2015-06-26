@@ -10,8 +10,8 @@ const PADDING : usize = 4;
 #[derive(Debug)]
 pub enum Error {
 	Io(byteorder::Error),
-	InvalidValue,
-	InvalidType
+		InvalidValue,
+		InvalidType
 }
 
 impl From<byteorder::Error> for Error {
@@ -29,31 +29,31 @@ impl From<Error> for byteorder::Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-	        match *self {
-				Error::InvalidValue => write!(f, "Invalid value."),
-				Error::InvalidType => write!(f, "Invalid type."),
-				Error::Io(ref err) => err.fmt(f),
-			}
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		match *self {
+			Error::InvalidValue => write!(f, "Invalid value."),
+			Error::InvalidType => write!(f, "Invalid type."),
+			Error::Io(ref err) => err.fmt(f),
+		}
 	}
 }
 
 impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::InvalidValue => "Invalid value.",
-            Error::InvalidType => "Invalid type.",
-            Error::Io(ref err) => error::Error::description(err),
-        }
-    }
+	fn description(&self) -> &str {
+		match *self {
+			Error::InvalidValue => "Invalid value.",
+			Error::InvalidType => "Invalid type.",
+			Error::Io(ref err) => error::Error::description(err),
+		}
+	}
 
-    fn cause(&self) -> Option<&error::Error> {
-        match *self {
-            Error::InvalidValue => None,
-            Error::InvalidType => None,
-            Error::Io(ref err) => err.cause(),
-        }
-    }
+	fn cause(&self) -> Option<&error::Error> {
+		match *self {
+			Error::InvalidValue => None,
+			Error::InvalidType => None,
+			Error::Io(ref err) => err.cause(),
+		}
+	}
 }
 
 pub struct XdrReader<'a> {
@@ -83,7 +83,7 @@ impl XdrWriter {
 			XdrPrimitive::write_to_xdr(self,t);
 		};
 	}
-		
+
 }
 impl<'a> XdrReader<'a> {
 	pub fn new(x:&'a Vec<u8>) -> XdrReader<'a> {
@@ -163,7 +163,6 @@ impl XdrPrimitive for u32 {
 			Ok(v) => Ok(v),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_u32::<byteorder::BigEndian>(v).unwrap();
@@ -175,7 +174,6 @@ impl XdrPrimitive for u16 {
 			Ok(v) => Ok(v as u16),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_u32::<byteorder::BigEndian>(v as u32).unwrap();
@@ -187,7 +185,6 @@ impl XdrPrimitive for u8 {
 			Ok(v) => Ok(v as u8),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_u32::<byteorder::BigEndian>(v as u32).unwrap();
@@ -199,7 +196,6 @@ impl XdrPrimitive for i8 {
 			Ok(v) => Ok(v as i8),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_i32::<byteorder::BigEndian>(v as i32).unwrap();
@@ -211,7 +207,6 @@ impl XdrPrimitive for i16 {
 			Ok(v) => Ok(v as i16),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_i32::<byteorder::BigEndian>(v as i32).unwrap();
@@ -223,7 +218,6 @@ impl XdrPrimitive for i32 {
 			Ok(v) => Ok(v),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_i32::<byteorder::BigEndian>(v).unwrap();
@@ -235,7 +229,6 @@ impl XdrPrimitive for i64 {
 			Ok(v) => Ok(v),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_i64::<byteorder::BigEndian>(v).unwrap();
@@ -247,12 +240,10 @@ impl XdrPrimitive for u64 {
 			Ok(v) => Ok(v),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_u64::<byteorder::BigEndian>(v).unwrap();
 	}
-
 }
 
 impl XdrPrimitive for f32 {
@@ -261,7 +252,6 @@ impl XdrPrimitive for f32 {
 			Ok(v) => Ok(v),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_f32::<byteorder::BigEndian>(v).unwrap();
@@ -273,7 +263,6 @@ impl XdrPrimitive for f64 {
 			Ok(v) => Ok(v),
 			Err(v) => Err(Error::Io(v))
 		}
-			
 	}
 	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
 		x.writer.write_f64::<byteorder::BigEndian>(v).unwrap();
