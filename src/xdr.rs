@@ -5,6 +5,8 @@ use std::vec::Vec;
 use byteorder;
 use byteorder::{BigEndian,ReadBytesExt,WriteBytesExt};
 
+static PADDING : usize = 4;
+
 #[derive(Debug)]
 pub enum Error {
 	Io(byteorder::Error),
@@ -85,7 +87,7 @@ impl XdrWriter {
 }
 impl<'a> XdrReader<'a> {
 	pub fn new(x:&'a Vec<u8>) -> XdrReader<'a> {
-		XdrReader{ reader : io::Cursor::new(x.as_slice()) }
+		XdrReader{ reader : io::Cursor::new(&x) }
 	}
 
 	pub fn from_array(x: &'a [u8]) -> XdrReader<'a> {
@@ -126,6 +128,31 @@ impl<T:XdrPrimitive> XdrPrimitive for Vec<T> {
 		x.pack( v.len() as u32 );
 		for t in v {
 			x.pack(t);
+		};
+	}
+}
+
+impl XdrPrimitive for String {
+	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>{
+		let len = x.unpack::<u32>().unwrap() as usize;
+		let pad = PADDING - (len % PADDING);
+		let bytes = x.unpack_array::<u8>(len).unwrap();
+
+		if pad != 0 {
+			let _ = x.unpack_array::<u8>(pad);
+		};
+
+		Ok(String::from_utf8(bytes).unwrap())
+	}
+
+	fn write_to_xdr(x: &mut XdrWriter, v: Self) {
+		let bytes = v.into_bytes();
+		let bytes_len = bytes.len();
+		let pad = PADDING - (bytes_len % PADDING);
+		x.pack(bytes);
+
+		for _ in 0..pad {
+			x.pack(0u8);
 		};
 	}
 }
