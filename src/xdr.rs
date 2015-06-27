@@ -1,3 +1,7 @@
+/*!
+  This moule contain XDR encoder and decoder
+ */
+
 use std::io;
 use std::fmt;
 use std::error;
@@ -10,8 +14,8 @@ const PADDING : usize = 4;
 #[derive(Debug)]
 pub enum Error {
 	Io(byteorder::Error),
-		InvalidValue,
-		InvalidType
+	InvalidValue,
+	InvalidType,
 }
 
 impl From<byteorder::Error> for Error {
@@ -83,6 +87,22 @@ impl XdrWriter {
 			XdrPrimitive::write_to_xdr(self,t);
 		};
 	}
+	pub fn pack_opaque_var_len(&mut self, x:Vec<u8>) {
+		XdrPrimitive::write_to_xdr(self,x.len() as u32);
+		for t in x {
+			let _ = self.writer.write_u8(t);
+		}
+	}
+	pub fn pack_opaque_fixed_len(&mut self, x:Vec<u8>) {
+		for t in x {
+			let _ = self.writer.write_u8(t);
+		}
+	}
+	pub fn pad(&mut self, len : usize) {
+		for _ in 0..len {
+			let _ = self.writer.write_u8(0);
+		}
+	}
 
 }
 impl<'a> XdrReader<'a> {
@@ -106,6 +126,23 @@ impl<'a> XdrReader<'a> {
 			result.push(t)
 		};
 		Ok(result)
+	}
+	pub fn unpack_opaque_var_len(&mut self) -> Result<Vec<u8>, Error> {
+		let len = self.unpack::<u32>().unwrap() as usize;
+		let mut v : Vec<u8>= Vec::with_capacity(len);
+
+		for _ in 0..len {
+			v.push(self.reader.read_u8().unwrap())
+		}
+		Ok(v)
+	}
+	pub fn unpack_opaque_fixed_len(&mut self, len : usize) -> Result<Vec<u8>, Error> {
+		let mut v : Vec<u8>= Vec::with_capacity(len);
+
+		for _ in 0..len {
+			v.push(self.reader.read_u8().unwrap())
+		}
+		Ok(v)
 	}
 }
 
@@ -136,24 +173,24 @@ impl XdrPrimitive for String {
 	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>{
 		let len = x.unpack::<u32>().unwrap() as usize;
 		let pad = PADDING - (len % PADDING);
-		let bytes = x.unpack_array::<u8>(len).unwrap();
+		let bytes = x.unpack_opaque_fixed_len(len).unwrap();
 
 		if pad != 0 {
-			let _ = x.unpack_array::<u8>(pad);
+			let _ = x.unpack_opaque_fixed_len(pad);
 		};
-
-		Ok(String::from_utf8(bytes).unwrap())
+		match String::from_utf8(bytes) {
+			Ok(s) => Ok(s),
+			Err(_) => Err(Error::InvalidValue)
+		}
 	}
 
 	fn write_to_xdr(x: &mut XdrWriter, v: Self) {
 		let bytes = v.into_bytes();
 		let bytes_len = bytes.len();
 		let pad = PADDING - (bytes_len % PADDING);
-		x.pack(bytes);
+		x.pack_opaque_var_len(bytes);
 
-		for _ in 0..pad {
-			x.pack(0u8);
-		};
+		x.pad(pad);
 	}
 }
 
