@@ -11,7 +11,7 @@ Example
 -------
 
 ```rust
-extern crate;
+extern crate xdr;
 
 let mut wr = xdr::xdr::XdrWriter::new();
 wr.pack(0xCCu8);
