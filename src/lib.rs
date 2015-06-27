@@ -1,5 +1,37 @@
-//#![feature(convert)]
-#![crate_type="lib"]
+/*!
+  This crate provides External Data Representation(XDR) encoding and decoding functions.
+
+  The XDR format RFC at https://tools.ietf.org/html/rfc4507
+
+  Usage
+  -----
+
+## Encoding
+
+```rust
+extern crate xdr;
+
+let mut wr = xdr::xdr::XdrWriter::new();
+let str = "abcdefABCDEFGH".to_owned();
+
+wr.pack(str);
+let buf = wr.into_buffer();
+```
+
+## Decoding
+
+```rust
+extern crate xdr;
+let buf = vec![0u8,0,0,0xB, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x0];
+let mut rdr = xdr::xdr::XdrReader::new(&buf);
+
+match rdr.unpack::<String>() {
+	Ok(v) => println!("{}", v),
+	Err(_) => println!("fail")
+}
+```
+ */
+
 extern crate byteorder;
 pub mod xdr;
 
