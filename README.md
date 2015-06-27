@@ -41,6 +41,9 @@ assert_eq!(-100.500e10f64,rdr.unpack::<f64>().unwrap());
 Building
 --------
 
-- cargo build - build library
-- cargo test - execute tests
-- cargo doc - compile rustdoc (wish that docs were here...)
+```bash
+cargo build # build library
+cargo test # execute tests
+cargo doc # compile rustdoc (wish that docs were here...)
+```
+
