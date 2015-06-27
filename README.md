@@ -11,9 +11,11 @@ Example
 -------
 
 ```rust
-extern crate;
+extern crate xdr;
 
-let mut wr = xdr::xdr::XdrWriter::new();
+use xdr::xdr::{XdrWriter,XdrReader};
+
+let mut wr = XdrWriter::new();
 wr.pack(0xCCu8);
 wr.pack(0xAAAAu16);
 wr.pack(0xDEADBEEFu32);
@@ -24,7 +26,7 @@ wr.pack(100.500f32);
 wr.pack(-100.500e10f64);
 
 let buf = &wr.into_buffer();
-let mut rdr = xdr::xdr::XdrReader::new(buf);
+let mut rdr = XdrReader::new(buf);
 
 assert_eq!(0xCCu8,rdr.unpack::<u8>().unwrap());
 assert_eq!(0xAAAAu16,rdr.unpack::<u16>().unwrap());
@@ -39,6 +41,7 @@ assert_eq!(-100.500e10f64,rdr.unpack::<f64>().unwrap());
 Building
 --------
 
-- cargo build - build library
-- cargo test - execute tests
-- cargo doc - compile rustdoc (wish that docs were here...)
+	cargo build # build library
+	cargo test # execute tests
+	cargo doc # compile rustdoc (wish that docs were here...)
+
