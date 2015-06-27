@@ -133,3 +133,12 @@ fn utf_8_string_test() {
 
 	assert_eq!("abcdefABCDEFGHАБВГДЕЁ", res)
 }
+
+#[test]
+fn string_decode_test() {
+	let buf = vec![0u8,0,0,0xB, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x0];
+	let mut rdr = xdr::XdrReader::new(&buf);
+
+	let result = rdr.unpack::<String>();
+	assert_eq!("hello world", result.unwrap());
+}
