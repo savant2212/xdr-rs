@@ -2,6 +2,13 @@
 name = "xdr"
 version = "0.1.0"
 authors = ["Nikita Nazarenko <nnazarenko@radiofid.ru>"]
+description = "XDR encoding and decoding library"
+homepage = "https://github.com/savant2212/xdr-rs"
+repository = "https://github.com/savant2212/xdr-rs"
+readme = "README.md"
+keywords = ["XDR"]
+license = "MIT"
+
 
 [dependencies]
 byteorder="*"
