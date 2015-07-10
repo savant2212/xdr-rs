@@ -131,10 +131,7 @@ impl<'a> XdrReader<'a> {
 		Ok(result)
 	}
 	pub fn unpack_opaque_var_len(&mut self) -> Result<Vec<u8>, Error> {
-		let len = match self.unpack::<u32>() {
-			Ok(t) => t as usize,
-			Err(t) => return Err(t),
-		};
+		let len = try!(self.unpack::<u32>()) as usize;
 		let mut v : Vec<u8>= Vec::with_capacity(len);
 
 		for _ in 0..len {
@@ -165,10 +162,7 @@ pub trait XdrPrimitive {
 
 impl<T:XdrPrimitive> XdrPrimitive for Vec<T> {
 	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>{
-		let count = match x.unpack::<u32>() {
-						Ok(t) => t as usize,
-						Err(t) => return Err(t),
-		};
+		let count = try!(x.unpack::<u32>()) as usize;
 		let mut result : Vec<T> = Vec::with_capacity(count);
 
 		for _ in 0..count {
@@ -189,15 +183,9 @@ impl<T:XdrPrimitive> XdrPrimitive for Vec<T> {
 
 impl XdrPrimitive for String {
 	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>{
-		let len = match x.unpack::<u32>() { 
-					Ok(t) => t as usize,
-					Err(t) => return Err(t),
-		};
+		let len = try!(x.unpack::<u32>()) as usize;
 		let pad = PADDING - (len % PADDING);
-		let bytes = match x.unpack_opaque_fixed_len(len) {
-			Ok(t) => t,
-			Err(t) => return Err(t),
-		};
+		let bytes = try!(x.unpack_opaque_fixed_len(len));
 
 		if pad != 0 {
 			let _ = x.unpack_opaque_fixed_len(pad);
