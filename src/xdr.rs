@@ -60,6 +60,13 @@ impl error::Error for Error {
 	}
 }
 
+macro_rules! opt {
+	($expr: expr) => ( match $expr {
+		Err(v) => return Some(From::from(v)),
+		Ok(_) => None,
+	} )
+}
+
 pub struct XdrReader<'a> {
 	reader : io::Cursor<&'a [u8]>
 }
@@ -78,30 +85,46 @@ impl XdrWriter {
 		self.writer.into_inner()
 	}
 
-	pub fn pack<T:XdrPrimitive>(&mut self, x:T) {
+	pub fn pack<T:XdrPrimitive>(&mut self, x:T) -> Option<Error>{
 		XdrPrimitive::write_to_xdr(self, x)
 	}
 
-	pub fn pack_array<T:XdrPrimitive>(&mut self, x:Vec<T>) {
+	pub fn pack_array<T:XdrPrimitive>(&mut self, x:Vec<T>) -> Option<Error> {
 		for t in x {
-			XdrPrimitive::write_to_xdr(self,t);
+			match XdrPrimitive::write_to_xdr(self,t) {
+				Some(t) => return Some(t),
+				None => (),
+			}
 		};
+		None
 	}
-	pub fn pack_opaque_var_len(&mut self, x:Vec<u8>) {
+	pub fn pack_opaque_var_len(&mut self, x:Vec<u8>) -> Option<Error>{
 		XdrPrimitive::write_to_xdr(self,x.len() as u32);
 		for t in x {
-			let _ = self.writer.write_u8(t);
+			match self.writer.write_u8(t) {
+				Err(t) => return Some(Error::Io(t)),
+				Ok(_) => (),
+			}
 		}
+		None
 	}
-	pub fn pack_opaque_fixed_len(&mut self, x:Vec<u8>) {
+	pub fn pack_opaque_fixed_len(&mut self, x:Vec<u8>) -> Option<Error>{
 		for t in x {
-			let _ = self.writer.write_u8(t);
+			match self.writer.write_u8(t) {
+				Err(t) => return Some(Error::Io(t)),
+				Ok(_) => (),
+			}
 		}
+		None
 	}
-	pub fn pad(&mut self, len : usize) {
+	pub fn pad(&mut self, len : usize) -> Option<Error> {
 		for _ in 0..len {
-			let _ = self.writer.write_u8(0);
+			match self.writer.write_u8(0) {
+				Err(t) => return Some(Error::Io(t)),
+				Ok(_) => (),
+			}
 		}
+		None
 	}
 
 }
@@ -157,7 +180,7 @@ impl<'a> XdrReader<'a> {
 
 pub trait XdrPrimitive {
 	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>;
-	fn write_to_xdr(x: &mut XdrWriter, v: Self);
+	fn write_to_xdr(x: &mut XdrWriter, v: Self) -> Option<Error>;
 }
 
 impl<T:XdrPrimitive> XdrPrimitive for Vec<T> {
@@ -173,11 +196,18 @@ impl<T:XdrPrimitive> XdrPrimitive for Vec<T> {
 		};
 		Ok(result)
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v: Self) {
-		x.pack( v.len() as u32 );
+	fn write_to_xdr(x: &mut XdrWriter, v: Self) -> Option<Error> {
+		match x.pack( v.len() as u32 ) {
+			Some(t) => return Some(t),
+			None => (),
+		}
 		for t in v {
-			x.pack(t);
+			match x.pack(t) {
+				Some(t) => return Some(t),
+				None => (),
+			}
 		};
+		None
 	}
 }
 
@@ -188,7 +218,7 @@ impl XdrPrimitive for String {
 		let bytes = try!(x.unpack_opaque_fixed_len(len));
 
 		if pad != 0 {
-			let _ = x.unpack_opaque_fixed_len(pad);
+			try!(x.unpack_opaque_fixed_len(pad));
 		};
 		match String::from_utf8(bytes) {
 			Ok(s) => Ok(s),
@@ -196,13 +226,16 @@ impl XdrPrimitive for String {
 		}
 	}
 
-	fn write_to_xdr(x: &mut XdrWriter, v: Self) {
+	fn write_to_xdr(x: &mut XdrWriter, v: Self) -> Option<Error>{
 		let bytes = v.into_bytes();
 		let bytes_len = bytes.len();
 		let pad = PADDING - (bytes_len % PADDING);
-		x.pack_opaque_var_len(bytes);
+		match x.pack_opaque_var_len(bytes) {
+			Some(t) => return Some(t),
+			None => (),
+		};
 
-		x.pad(pad);
+		x.pad(pad)
 	}
 }
 
@@ -213,8 +246,8 @@ impl XdrPrimitive for u32 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_u32::<byteorder::BigEndian>(v);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) -> Option<Error> {
+		opt!(x.writer.write_u32::<byteorder::BigEndian>(v))
 	}
 }
 impl XdrPrimitive for u16 {
@@ -224,8 +257,8 @@ impl XdrPrimitive for u16 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_u32::<byteorder::BigEndian>(v as u32);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self)  -> Option<Error> {
+		opt!(x.writer.write_u32::<byteorder::BigEndian>(v as u32))
 	}
 }
 impl XdrPrimitive for u8 {
@@ -235,8 +268,8 @@ impl XdrPrimitive for u8 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_u32::<byteorder::BigEndian>(v as u32);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self)  -> Option<Error> {
+		opt!(x.writer.write_u32::<byteorder::BigEndian>(v as u32))
 	}
 }
 impl XdrPrimitive for i8 {
@@ -246,8 +279,8 @@ impl XdrPrimitive for i8 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_i32::<byteorder::BigEndian>(v as i32);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self)  -> Option<Error> {
+		opt!(x.writer.write_i32::<byteorder::BigEndian>(v as i32))
 	}
 }
 impl XdrPrimitive for i16 {
@@ -257,8 +290,8 @@ impl XdrPrimitive for i16 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_i32::<byteorder::BigEndian>(v as i32);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) -> Option<Error> {
+		opt!(x.writer.write_i32::<byteorder::BigEndian>(v as i32))
 	}
 }	
 impl XdrPrimitive for i32 {
@@ -268,8 +301,8 @@ impl XdrPrimitive for i32 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_i32::<byteorder::BigEndian>(v);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) -> Option<Error> {
+		opt!(x.writer.write_i32::<byteorder::BigEndian>(v))
 	}
 }
 impl XdrPrimitive for i64 {
@@ -279,8 +312,8 @@ impl XdrPrimitive for i64 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_i64::<byteorder::BigEndian>(v);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) -> Option<Error> {
+		opt!(x.writer.write_i64::<byteorder::BigEndian>(v))
 	}
 }
 impl XdrPrimitive for u64 {
@@ -290,8 +323,8 @@ impl XdrPrimitive for u64 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_u64::<byteorder::BigEndian>(v);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) -> Option<Error> {
+		opt!(x.writer.write_u64::<byteorder::BigEndian>(v))
 	}
 }
 
@@ -302,8 +335,8 @@ impl XdrPrimitive for f32 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_f32::<byteorder::BigEndian>(v);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) -> Option<Error> {
+		opt!(x.writer.write_f32::<byteorder::BigEndian>(v))
 	}
 }
 impl XdrPrimitive for f64 {
@@ -313,8 +346,8 @@ impl XdrPrimitive for f64 {
 			Err(v) => Err(Error::Io(v))
 		}
 	}
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = x.writer.write_f64::<byteorder::BigEndian>(v);
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) -> Option<Error> {
+		opt!(x.writer.write_f64::<byteorder::BigEndian>(v))
 	}
 }
 
@@ -328,10 +361,10 @@ impl XdrPrimitive for bool {
 		}
 	}
 
-	fn write_to_xdr(x: &mut XdrWriter, v:Self) {
-		let _ = match v {
+	fn write_to_xdr(x: &mut XdrWriter, v:Self) -> Option<Error> {
+		opt!( match v {
 			true => x.writer.write_u32::<byteorder::BigEndian>(1),
 			false => x.writer.write_u32::<byteorder::BigEndian>(0),
-		};
+		})
 	}
 }
