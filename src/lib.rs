@@ -121,6 +121,21 @@ fn ascii_string_test() {
 }
 
 #[test]
+fn empty_string_test() {
+	let mut wr = xdr::XdrWriter::new();
+	let str = "".to_owned();
+
+	wr.pack(str);
+	let buf = &wr.into_buffer();
+	assert_eq!(buf.len(), 4);
+	let mut rdr = xdr::XdrReader::new(buf);
+
+	let res = rdr.unpack::<String>().unwrap();
+
+	assert_eq!("", res)
+}
+
+#[test]
 fn utf_8_string_test() {
 	let mut wr = xdr::XdrWriter::new();
 	let str = "abcdefABCDEFGHАБВГДЕЁ".to_owned();

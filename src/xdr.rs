@@ -214,7 +214,7 @@ impl<T:XdrPrimitive> XdrPrimitive for Vec<T> {
 impl XdrPrimitive for String {
 	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>{
 		let len = try!(x.unpack::<u32>()) as usize;
-		let pad = PADDING - (len % PADDING);
+		let pad = (PADDING - (len % PADDING)) % PADDING;
 		let bytes = try!(x.unpack_opaque_fixed_len(len));
 
 		if pad != 0 {
@@ -229,7 +229,7 @@ impl XdrPrimitive for String {
 	fn write_to_xdr(x: &mut XdrWriter, v: Self) -> Option<Error>{
 		let bytes = v.into_bytes();
 		let bytes_len = bytes.len();
-		let pad = PADDING - (bytes_len % PADDING);
+		let pad = (PADDING - (bytes_len % PADDING)) % PADDING;
 		match x.pack_opaque_var_len(bytes) {
 			Some(t) => return Some(t),
 			None => (),
