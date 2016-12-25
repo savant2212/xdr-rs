@@ -7,29 +7,19 @@ use std::fmt;
 use std::error;
 use std::vec::Vec;
 use byteorder;
-use byteorder::{BigEndian,ReadBytesExt,WriteBytesExt};
+use byteorder::{ReadBytesExt,WriteBytesExt};
 
 const PADDING : usize = 4;
 
 #[derive(Debug)]
 pub enum Error {
-	Io(byteorder::Error),
+	Io(io::Error),
 	InvalidValue,
 	InvalidType,
 }
 
-impl From<byteorder::Error> for Error {
-	fn from(err: byteorder::Error) -> Error { Error::Io(err) }
-}
-
-impl From<Error> for byteorder::Error {
-	fn from(err: Error) -> byteorder::Error {
-		match err {
-			Error::Io(err) => err,
-			Error::InvalidValue => byteorder::Error::Io(io::Error::new(io::ErrorKind::Other, "Invalid value")),
-			Error::InvalidType => byteorder::Error::Io(io::Error::new(io::ErrorKind::Other, "Invalid type")),
-		}
-	}
+impl From<io::Error> for Error {
+	fn from(err: io::Error) -> Error { Error::Io(err) }
 }
 
 impl fmt::Display for Error {
@@ -178,7 +168,7 @@ impl<'a> XdrReader<'a> {
 	}
 }
 
-pub trait XdrPrimitive {
+pub trait XdrPrimitive: Sized {
 	fn read_from_xdr(x: &mut XdrReader) -> Result<Self, Error>;
 	fn write_to_xdr(x: &mut XdrWriter, v: Self) -> Option<Error>;
 }
