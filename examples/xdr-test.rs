@@ -15,7 +15,7 @@ fn main() {
 				let _ = stream.read(&mut data);
 
 				let mut strs : Vec<String>= data.iter().map(|b| format!("{:02X}", b)).collect();
-				println!("{}",strs.connect(" "));
+				println!("{}",strs.join(" "));
 				let mut rdr = xdr::xdr::XdrReader::from_array(&data);
 
 				let d_u8 : u8 = rdr.unpack().unwrap();
@@ -40,7 +40,7 @@ fn main() {
 
 				let buf = wr.into_buffer();
 				strs = buf.iter().map(|b| format!("{:02X}", b)).collect();
-				println!("{}",strs.connect(" "));
+				println!("{}",strs.join(" "));
 				stream.write(&buf[..]).unwrap();
 		});
 	}
